@@ -30,12 +30,31 @@ dashboard = Dashboard(db)
 @app.route("/")
 def home():
     return "Welcome to the API"
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        if username is None:
+            username = email
+        if username is not None and password is not None and email is not None:  
+            session.add(User(name=username, email=email, password=generate_password_hash(password)))
+            session.commit()
+        # Check if the user exists and the password is correct
+        else:
+            return abort(401, description="username, password, or email is None")
+    
+    # If it's a GET request, show the login form
+    return render_template('registration.html')
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = session.query(User).filter(name=username).first()
+        user = session.query(User).filter(User.name == username).first()
         
         # Check if the user exists and the password is correct
         if user is not None and check_password_hash(user.password, password):
