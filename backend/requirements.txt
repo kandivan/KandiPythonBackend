@@ -1,0 +1,5 @@
+Flask
+FastAPI
+mysql-connector-python
+rplotly
+boto3
