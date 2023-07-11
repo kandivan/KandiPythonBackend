@@ -1,7 +1,5 @@
-python3 -m venv myenv
+pipenv shell
 
-source myenv/bin/activate
-
-pip install -r requirements.txt
+pipenv install
 
 python main.py

@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, make_response, abort
+from flask import Flask, request, jsonify, make_response, abort, render_template, redirect, url_for
 from flask_login import login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash
-from auth import authenticate, authorize, login_manager
-from database import Database
+from auth import authenticate, authorize, login_manager, check_password_hash, login_user
+from database import Database, User
 from events import EventSystem
 from telemetry import Telemetry
 from dashboard import Dashboard
@@ -15,6 +15,7 @@ login_manager.init_app(app)
 
 # Initialize database connection
 db = Database()
+session = db.get_session()
 
 # Initialize event system
 event_system = EventSystem()
@@ -29,13 +30,22 @@ dashboard = Dashboard(db)
 @app.route("/")
 def home():
     return "Welcome to the API"
-
-@app.route("/login", methods=["POST"])
-@authenticate
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if not current_user.is_authenticated:
-        abort(401)
-    return jsonify({"message": f"Logged in as {current_user.username}."})
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = session.query(User).filter(name=username).first()
+        
+        # Check if the user exists and the password is correct
+        if user is not None and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('dashboard'))  # Redirect to the dashboard after login
+        
+        return abort(401, description="Invalid username or password")
+    
+    # If it's a GET request, show the login form
+    return render_template('login.html')
 
 @app.route("/logout")
 @login_required
@@ -75,4 +85,4 @@ def internal_server_error(e):
     return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=5001, debug=True)

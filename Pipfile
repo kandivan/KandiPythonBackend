@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-gpt-engineer = "*"
 dash = "*"
 sqlalchemy = "*"
-pymysql = "*"
 psycopg2 = "*"
+flask-login = "*"
+flask = "*"
+boto3 = "*"
+plotly = "*"
 
 [dev-packages]
 
