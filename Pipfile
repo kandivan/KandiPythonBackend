@@ -11,6 +11,8 @@ flask-login = "*"
 flask = "*"
 boto3 = "*"
 plotly = "*"
+torch = "*"
+torchvision = "*"
 
 [dev-packages]
 

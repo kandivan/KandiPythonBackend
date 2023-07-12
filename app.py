@@ -6,6 +6,7 @@ from database import Database, User
 from events import EventSystem
 from telemetry import Telemetry
 from dashboard import Dashboard
+from ai_generation import AIGenerationService
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # Secret key for Flask-Login sessions
@@ -25,6 +26,8 @@ telemetry = Telemetry(db, event_system)
 
 # Initialize dashboard
 dashboard = Dashboard(db)
+
+ai_service = AIGenerationService('path_to_your_model')
 
 # Routes
 @app.route("/")
@@ -80,6 +83,17 @@ def get_dashboard():
         abort(500, description="Error fetching dashboard data.")
     return jsonify(dashboard_data)
 
+
+
+@app.route("/ai-generate", methods=["POST"])
+def ai_generate():
+    data = request.get_json()
+    prompt = data.get('prompt')
+    if not prompt:
+        abort(400, description="No prompt provided.")
+    generated_text = ai_service.generate_text(prompt)
+    return jsonify({"generated_text": generated_text})
+
 # Other API routes...
 
 # Error handlers...
@@ -102,6 +116,7 @@ def not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return jsonify({"error": "Internal server error", "message": str(e)}), 500
+    
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
