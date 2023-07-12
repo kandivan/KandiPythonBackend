@@ -1,16 +1,31 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from enum import Enum
 
 Base = declarative_base()
+class EventType(Enum):
+    Invalid = 0
+    
+class Event(Base):
+    __tablename__ = 'events'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(8000))
+    description = Column(String(8000))
+    location = Column(String(8000))
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
+    host_id = Column(Integer, ForeignKey('users.id'))
 
 class User(Base):
+    
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
     name = Column(String(8000))
     email = Column(String(8000))
-    password = Column(String(8000))
+    password = Column(String(8000)) # This is a salty pass
     profile = relationship('Profile', uselist=False, back_populates='user')
     posts = relationship('Post', back_populates='author')
     
@@ -43,6 +58,15 @@ class Comment(Base):
     content = Column(String(8000))
     timestamp = Column(DateTime)
     post = relationship('Post', back_populates='comments')
+class Payments(Base):
+    __tablename__ = 'payments'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    amount = Column(Integer)
+    timestamp = Column(DateTime)
+    user = relationship('User', back_populates='payments')
+
     
 class Database:
     def __init__(self):

@@ -3,6 +3,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = true
+name = "downloadpytorch"
+
+[[source]]
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = true
+name = "downloadpytorch"
+
+[[source]]
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = true
+name = "downloadpytorch"
+
 [packages]
 dash = "*"
 sqlalchemy = "*"
@@ -11,8 +26,12 @@ flask-login = "*"
 flask = "*"
 boto3 = "*"
 plotly = "*"
-torch = "*"
-torchvision = "*"
+transformers = "*"
+diffusers = "*"
+accelerate = "*"
+torch = {version = "*", index = "downloadpytorch"}
+torchvision = {version = "*", index = "downloadpytorch"}
+torchaudio = {version = "*", index = "downloadpytorch"}
 
 [dev-packages]
 
