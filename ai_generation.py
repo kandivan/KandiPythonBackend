@@ -37,9 +37,6 @@ class ImageCaptionGenerator:
 
         return preds
 
-# Usage
-generator = ImageCaptionGenerator()
-print(generator.predict_step(['shoe.jpg']))
 
 
 class AIGenerationService:

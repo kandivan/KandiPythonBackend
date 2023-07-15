@@ -6,6 +6,14 @@ from enum import Enum
 Base = declarative_base()
 class EventType(Enum):
     Invalid = 0
+    Registration = 1
+    Login = 2 
+    Logout = 3
+    RequestAiGeneration = 4
+    CompleteAiGeneration = 5
+    OpenDashboard = 6
+    OpenProfile = 7
+
     
 class Event(Base):
     __tablename__ = 'events'
@@ -17,47 +25,17 @@ class Event(Base):
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     host_id = Column(Integer, ForeignKey('users.id'))
+    session_id = Column(String(200))
 
 class User(Base):
     
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
-    name = Column(String(8000))
-    email = Column(String(8000))
+    username = Column(String(8000), unique=True)
+    email = Column(String(8000), unique=True)
     password = Column(String(8000)) # This is a salty pass
-    profile = relationship('Profile', uselist=False, back_populates='user')
-    posts = relationship('Post', back_populates='author')
     
-class Profile(Base):
-    __tablename__ = 'profiles'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    bio = Column(String(8000))
-    location = Column(String(8000))
-    user = relationship('User', back_populates='profile')
-
-class Post(Base):
-    __tablename__ = 'posts'
-
-    id = Column(Integer, primary_key=True)
-    author_id = Column(Integer, ForeignKey('users.id'))
-    title = Column(String(8000))
-    content = Column(String(8000))
-    timestamp = Column(DateTime)
-    author = relationship('User', back_populates='posts')
-    comments = relationship('Comment', back_populates='post')
-
-class Comment(Base):
-    __tablename__ = 'comments'
-
-    id = Column(Integer, primary_key=True)
-    post_id = Column(Integer, ForeignKey('posts.id'))
-    user_id = Column(Integer, ForeignKey('users.id'))
-    content = Column(String(8000))
-    timestamp = Column(DateTime)
-    post = relationship('Post', back_populates='comments')
 class Payments(Base):
     __tablename__ = 'payments'
 
@@ -65,7 +43,6 @@ class Payments(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     amount = Column(Integer)
     timestamp = Column(DateTime)
-    user = relationship('User', back_populates='payments')
 
     
 class Database:
