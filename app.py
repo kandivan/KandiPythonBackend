@@ -43,7 +43,7 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data, 10).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         print(hashed_password)
         new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         session.add(new_user)
@@ -58,16 +58,10 @@ def login():
     if form.validate_on_submit():
         user = session.query(User).filter_by(username=form.username.data).first()
         if user:
-            try:
-                new_generated_password_hash = bcrypt.generate_password_hash(form.password.data)
-                print(new_generated_password_hash)
-                print(user.password)
-                if bcrypt.check_password_hash(user.password, form.password.data):
-                    login_user(user)
-                    return redirect(url_for('dashboard'))
-                else:
-                    return "Invalid login credentials."
-            except:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                return redirect(url_for('dashboard'))
+            else:
                 return "Invalid login credentials."
     
     return render_template('login.html', form=form)
@@ -80,7 +74,7 @@ def logout():
 
 @app.route("/dashboard")
 @login_required
-def get_dashboard():
+def dashboard():
     return render_template('dashboard.html')
     dashboard_data = dashboard.fetch_data()
     if not dashboard_data:

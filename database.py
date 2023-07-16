@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from flask_login import UserMixin
 from enum import Enum
 
 Base = declarative_base()
@@ -27,14 +28,18 @@ class Event(Base):
     host_id = Column(Integer, ForeignKey('users.id'))
     session_id = Column(String(200))
 
-class User(Base):
+class User(Base, UserMixin):
     
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
-    username = Column(String(8000), unique=True)
-    email = Column(String(8000), unique=True)
-    password = Column(String(8000)) # This is a salty pass
+    username = Column(String(100), unique=True)
+    email = Column(String(200), unique=True)
+    password = Column(String(100)) # This is a salty pass
+    
+    @property
+    def is_active(self):
+        return True
     
 class Payments(Base):
     __tablename__ = 'payments'
@@ -47,7 +52,7 @@ class Payments(Base):
     
 class Database:
     def __init__(self):
-        self.engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost/PinzakTest')
+        self.engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost/KandiStack')
         self.Session = sessionmaker(bind=self.engine)
 
     def create_tables(self):

@@ -5,6 +5,7 @@ from PIL import Image
 db = Database()
 session = db.get_session()
 db.create_tables()
+session.close()
 # # Insert data
 # # new_user = User(name='John Doe', email='john@example.com', password='securepassword')
 # # session.add(new_user)

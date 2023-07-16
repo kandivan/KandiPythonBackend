@@ -5,7 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from wtforms  import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError, Email
 from werkzeug.security import check_password_hash, generate_password_hash
-from database import Database, User as UserModel
+from database import Database, User
 
 # Setup Flask-Login
 login_manager = LoginManager()
@@ -14,15 +14,7 @@ session = db.get_session()
 
 @login_manager.user_loader
 def load_user(user_id):
-    user_data = session.query(UserModel).filter(UserModel.id == user_id).first()
-    if user_data:
-        return User(user_data)
-
-class User(UserMixin):
-    def __init__(self, user_data):
-        self.id = user_data.id
-        self.username = user_data.username
-        self.password = user_data.password
+    return session.query(User).get(user_id)
 
 class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[InputRequired(), Length(min=4, max=20)],
@@ -34,7 +26,7 @@ class RegisterForm(FlaskForm):
     submit = SubmitField('Register')
     
     def validate_username(self, username):
-        existing_user_username = session.query(UserModel).filter_by(username=username.data.lower()).first()
+        existing_user_username = session.query(User).filter_by(username=username.data.lower()).first()
         if existing_user_username:
             raise ValidationError("That username already exists. Please choose a different one.")
 
@@ -52,7 +44,7 @@ def authenticate(func):
         if not auth or not auth.username or not auth.password:
             return jsonify({'message': 'Missing username or password'}), 401
 
-        user_data = session.query(UserModel).filter(UserModel.Username == auth.username).first()
+        user_data = session.query(User).filter(User.Username == auth.username).first()
         user = User(user_data) if user_data else None
         if user and check_password_hash(user.password, auth.password):
             login_user(user)
