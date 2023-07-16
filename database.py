@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Foreign
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from flask_login import UserMixin
+from flask_bcrypt import Bcrypt
 from enum import Enum
 
 Base = declarative_base()
@@ -35,11 +36,16 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(100), unique=True)
     email = Column(String(200), unique=True)
-    password = Column(String(100)) # This is a salty pass
+    password = Column(String(1000)) # This is a salty pass
     
     @property
     def is_active(self):
         return True
+    def set_password(self, bcrypt: Bcrypt, password: str):
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, bcrypt: Bcrypt, password: str):
+        return bcrypt.check_password_hash(self.password, password)
     
 class Payments(Base):
     __tablename__ = 'payments'

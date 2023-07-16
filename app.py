@@ -1,9 +1,7 @@
-from flask import Flask, request, jsonify, make_response, abort, render_template, redirect, url_for, redirect
-from flask_login import login_required, logout_user, current_user
+from flask import Flask, request, jsonify, abort, render_template, redirect, url_for, redirect
+from flask_login import login_required, logout_user, login_user, current_user
 from flask_bcrypt import Bcrypt
-from werkzeug.security import generate_password_hash
-from auth import authenticate, authorize, login_manager, check_password_hash, login_user, logout_user, current_user,  LoginForm, RegisterForm, load_user
-from database import Database, User
+from auth import db, login_manager, LoginForm, RegisterForm, get_user, register_user, change_password, ChangePasswordForm
 from events import EventSystem
 from telemetry import Telemetry
 from dashboard import Dashboard
@@ -18,9 +16,6 @@ bcrypt = Bcrypt(app)
 # Initialize Flask-Login
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-# Initialize database connection
-db = Database()
-session = db.get_session()
 
 # Initialize event system
 event_system = EventSystem()
@@ -43,11 +38,7 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        print(hashed_password)
-        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-        session.add(new_user)
-        session.commit()
+        register_user(form.username.data.lower(), form.email.data.lower(), bcrypt.generate_password_hash(form.password.data).decode('utf-8'))
         return redirect(url_for('login'))
     
     return render_template('registration.html', form=form)
@@ -56,7 +47,7 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = session.query(User).filter_by(username=form.username.data).first()
+        user = get_user(form.username.data.lower())
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
@@ -76,12 +67,6 @@ def logout():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
-    dashboard_data = dashboard.fetch_data()
-    if not dashboard_data:
-        abort(500, description="Error fetching dashboard data.")
-    return jsonify(dashboard_data)
-
-
 
 @app.route("/ai-generate", methods=["POST"])
 def ai_generate():
@@ -92,6 +77,16 @@ def ai_generate():
     generated_text = ai_service.generate_text(prompt)
     return jsonify({"generated_text": generated_text})
 
+@app.route('/password_change', methods=['GET', 'POST'])
+@login_required
+def password_change():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if change_password(bcrypt, current_user, form.old_password.data, form.new_password.data):
+            return redirect(url_for('dashboard'))
+        else:
+            return "Invalid old password.", 400
+    return render_template('change_password.html', form=form)
 # Other API routes...
 
 # Error handlers...
