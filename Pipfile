@@ -37,6 +37,7 @@ flask-bcrypt = "*"
 flask-wtf = "*"
 wtforms = "*"
 email-validator = "*"
+redis = "*"
 
 [dev-packages]
 

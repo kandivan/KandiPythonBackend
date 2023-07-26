@@ -6,6 +6,8 @@ from events import EventSystem
 from telemetry import Telemetry
 from dashboard import Dashboard
 from ai_generation import AIGenerationService
+from cache import redis_cache
+from rate_limiter import rate_limit
 
 app = Flask(__name__)
 app.secret_key = 'this_is_a_secret_key'  # Secret key for Flask-Login sessions
@@ -44,6 +46,7 @@ def register():
     return render_template('registration.html', form=form)
 
 @app.route("/login", methods=["GET", "POST"])
+@rate_limit(limit=3, per=60, scope_func=lambda: request.remote_addr)
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -69,6 +72,8 @@ def dashboard():
     return render_template('dashboard.html')
 
 @app.route("/ai-generate", methods=["POST"])
+@rate_limit(limit=10, per=60, scope_func=lambda: request.remote_addr)
+@redis_cache('ai_generate', ttl=60)
 def ai_generate():
     data = request.get_json()
     prompt = data.get('prompt')
